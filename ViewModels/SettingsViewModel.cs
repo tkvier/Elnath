@@ -1,143 +1,150 @@
-// ViewModels/SettingsViewModel.cs
-// 日本語概要: 初回設定ウィンドウのロジック。フォーカスが外れた時点とプロパティ更新でパス検証し、合格時のみ保存を有効化。
+// C#
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.ComponentModel.DataAnnotations;
+using System.IO;
+using AurigaPlus.Models;
+using System;
 
-namespace AurigaFrontend.ViewModels;
-
-public partial class SettingsViewModel : ObservableObject
+namespace AurigaPlus.ViewModels
 {
-    [ObservableProperty]
-    private string aurigaPath = string.Empty;
-
-    [ObservableProperty]
-    private string clientExePath = string.Empty;
-
-    [ObservableProperty]
-    private string statusMessage = string.Empty;
-
-    [ObservableProperty]
-    private bool statusIsError;
-
-    [ObservableProperty]
-    private bool canSave;
-
-    public Action? CloseWindowRequested;
-
-    public SettingsViewModel(Models.AppSettings settings)
+    /// <summary>
+    /// 設定ウィンドウのViewModel。
+    /// </summary>
+    public partial class SettingsViewModel : ViewModelBase
     {
-        AurigaPath = settings.AurigaPath;
-        ClientExePath = settings.ClientExePath;
-        ValidateAll();
-    }
+        // ObservableProperty属性により、プロパティの変更通知が自動的に実装されます。
+        [ObservableProperty]
+        private string? _aurigaPath;
 
-    [RelayCommand]
-    public void LostFocusValidateAuriga() => ValidateAuriga();
+        [ObservableProperty]
+        private string? _clientPath;
 
-    [RelayCommand]
-    public void LostFocusValidateClient() => ValidateClient();
+        [ObservableProperty]
+        private string? _statusMessage;
 
-    private void ValidateAuriga()
-    {
-        // Auriga のパスが存在し、サーバー実行ファイルが揃っているかを確認
-        if (string.IsNullOrWhiteSpace(AurigaPath) || !Directory.Exists(AurigaPath))
+        [ObservableProperty]
+        private bool _isSaveEnabled;
+
+        public AppSettings Settings { get; }
+
+        /// <summary>
+        /// 設定が保存されたときに発生するイベント。
+        /// </summary>
+        public event Action? SettingsSaved;
+
+        // IRelayCommandは、ViewからのイベントをViewModelで処理するためのコマンドです。
+        public IRelayCommand ValidateAurigaPathCommand { get; }
+        public IRelayCommand ValidateClientPathCommand { get; }
+        public IRelayCommand SaveCommand { get; }
+
+        public SettingsViewModel(AppSettings settings)
         {
-            SetStatus("Auriga のパスが存在しません", error: true);
-            CanSave = false;
-            return;
+            Settings = settings;
+            _aurigaPath = settings.AurigaPath;
+            _clientPath = settings.ClientPath;
+
+            ValidateAurigaPathCommand = new RelayCommand(ValidateAurigaPath);
+            ValidateClientPathCommand = new RelayCommand(ValidateClientPath);
+            SaveCommand = new RelayCommand(SaveSettings);
+
+            // 初期状態のバリデーションを実行
+            ValidatePaths();
         }
 
-        var required = new[]
+        /// <summary>
+        /// Aurigaのパスが正しいか検証します。
+        /// </summary>
+        private void ValidateAurigaPath()
         {
-            Constants.WithPlatformExt(Constants.LoginServerExe),
-            Constants.WithPlatformExt(Constants.CharServerExe),
-            Constants.WithPlatformExt(Constants.MapServerExe),
-        };
-
-        var missing = required.Where(n => !File.Exists(Path.Combine(AurigaPath, n))).ToList();
-        if (missing.Any())
-        {
-            SetStatus($"Auriga の必須実行ファイルが見つかりません: {string.Join(", ", missing)}", error: true);
-            CanSave = false;
-        }
-        else
-        {
-            SetStatus("Auriga パスは有効です", error: false);
-            CanSave = IsBothValid();
-        }
-    }
-
-    private void ValidateClient()
-    {
-        if (string.IsNullOrWhiteSpace(ClientExePath) || !File.Exists(ClientExePath))
-        {
-            SetStatus("Ragnarok Online クライアントの EXE が見つかりません", error: true);
-            CanSave = false;
-        }
-        else
-        {
-            SetStatus("クライアントパスは有効です", error: false);
-            CanSave = IsBothValid();
-        }
-    }
-
-    private void ValidateAll()
-    {
-        // 初期表示時の総合チェック
-        var oldStatus = StatusMessage;
-        var oldErr = StatusIsError;
-        ValidateAuriga();
-        var okA = !StatusIsError;
-        ValidateClient();
-        var okB = !StatusIsError;
-        if (okA && okB)
-        {
-            SetStatus("両方のパスが有効です", error: false);
-            CanSave = true;
-        }
-        else
-        {
-            // 個別検証の結果を保つ
-            StatusMessage = oldStatus;
-            StatusIsError = oldErr;
-            CanSave = false;
-        }
-    }
-
-    private bool IsBothValid()
-        => Directory.Exists(AurigaPath)
-           && File.Exists(Path.Combine(AurigaPath, Constants.WithPlatformExt(Constants.LoginServerExe)))
-           && File.Exists(Path.Combine(AurigaPath, Constants.WithPlatformExt(Constants.CharServerExe)))
-           && File.Exists(Path.Combine(AurigaPath, Constants.WithPlatformExt(Constants.MapServerExe)))
-           && File.Exists(ClientExePath);
-
-    private void SetStatus(string msg, bool error)
-    {
-        StatusMessage = msg;
-        StatusIsError = error;
-    }
-
-    [RelayCommand]
-    public void Save()
-    {
-        try
-        {
-            if (!CanSave) return; // 条件スキップはログしない
-
-            var s = new Models.AppSettings
+            if (string.IsNullOrWhiteSpace(AurigaPath) || !Directory.Exists(AurigaPath))
             {
-                AurigaPath = AurigaPath,
-                ClientExePath = ClientExePath
-            };
-            s.Save();
-            Services.LogService.Info("Settings", "設定を保存しました");
-            CloseWindowRequested?.Invoke();
+                StatusMessage = "Aurigaのパスが存在しません。";
+                IsSaveEnabled = false;
+                return;
+            }
+
+            // 必須のサーバー実行ファイルが存在するかチェック
+            bool loginServerOk = File.Exists(Path.Combine(AurigaPath, "login-server.exe"));
+            bool charServerOk = File.Exists(Path.Combine(AurigaPath, "char-server.exe"));
+            bool mapServerOk = File.Exists(Path.Combine(AurigaPath, "map-server.exe"));
+
+            if (!loginServerOk || !charServerOk || !mapServerOk)
+            {
+                StatusMessage = "サーバー実行ファイル (login/char/map-server.exe) が見つかりません。";
+                IsSaveEnabled = false;
+                return;
+            }
+
+            // 全てのチェックが通ったら、もう片方のパスも検証する
+            ValidatePaths();
         }
-        catch (Exception ex)
+
+        /// <summary>
+        /// Ragnarok Onlineクライアントのパスが正しいか検証します。
+        /// </summary>
+        private void ValidateClientPath()
         {
-            Services.LogService.Error("Settings", "設定の保存で例外が発生しました", ex);
-            SetStatus("設定の保存に失敗しました。ログを確認してください。", error: true);
+            if (string.IsNullOrWhiteSpace(ClientPath) || !File.Exists(ClientPath))
+            {
+                StatusMessage = "クライアント実行ファイルが存在しません。";
+                IsSaveEnabled = false;
+                return;
+            }
+
+            if (!Path.GetExtension(ClientPath).Equals(".exe", System.StringComparison.OrdinalIgnoreCase))
+            {
+                StatusMessage = "クライアントパスは実行ファイル (.exe) である必要があります。";
+                IsSaveEnabled = false;
+                return;
+            }
+            
+            // 全てのチェックが通ったら、もう片方のパスも検証する
+            ValidatePaths();
+        }
+
+        /// <summary>
+        /// 両方のパスを検証し、問題がなければ保存ボタンを有効にします。
+        /// </summary>
+        private void ValidatePaths()
+        {
+            // Aurigaパスの簡易チェック
+            if (string.IsNullOrWhiteSpace(AurigaPath) || !Directory.Exists(AurigaPath) ||
+                !File.Exists(Path.Combine(AurigaPath, "login-server.exe")) ||
+                !File.Exists(Path.Combine(AurigaPath, "char-server.exe")) ||
+                !File.Exists(Path.Combine(AurigaPath, "map-server.exe")))
+            {
+                IsSaveEnabled = false;
+                StatusMessage = "Aurigaのパスが正しくありません。";
+                return;
+            }
+
+            // クライアントパスの簡易チェック
+            if (string.IsNullOrWhiteSpace(ClientPath) || !File.Exists(ClientPath) || !Path.GetExtension(ClientPath).Equals(".exe", System.StringComparison.OrdinalIgnoreCase))
+            {
+                IsSaveEnabled = false;
+                StatusMessage = "クライアントのパスが正しくありません。";
+                return;
+            }
+
+            // すべての検証を通過
+            StatusMessage = "パスは正常です。設定を保存できます。";
+            IsSaveEnabled = true;
+        }
+
+        /// <summary>
+        /// 設定を保存します。
+        /// </summary>
+        private void SaveSettings()
+        {
+            if (!IsSaveEnabled) return;
+
+            Settings.AurigaPath = AurigaPath;
+            Settings.ClientPath = ClientPath;
+            Settings.Save();
+            StatusMessage = "設定を保存しました。";
+
+            // Viewに保存が完了したことを通知
+            SettingsSaved?.Invoke();
         }
     }
 }

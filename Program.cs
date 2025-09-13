@@ -1,33 +1,21 @@
-// Program.cs
-// 日本語概要: 起動引数で Auriga パス/クライアントパスを上書き可能に。未設定時は設定ウィンドウが開きます。
-using Avalonia;
-using System.Linq;
+﻿using Avalonia;
+using System;
 
-namespace AurigaFrontend;
+namespace AurigaPlus;
 
-internal static class Program
+sealed class Program
 {
-    public static void Main(string[] args)
-    {
-        // 設定の読み込みと上書き
-        var s = Models.AppSettings.LoadOrDefault();
+    // Initialization code. Don't use any Avalonia, third-party APIs or any
+    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
+    // yet and stuff might break.
+    [STAThread]
+    public static void Main(string[] args) => BuildAvaloniaApp()
+        .StartWithClassicDesktopLifetime(args);
 
-        foreach (var a in args)
-        {
-            if (a.StartsWith("--auriga-path=", StringComparison.OrdinalIgnoreCase))
-                s.AurigaPath = a.Split('=', 2)[1].Trim('"');
-            if (a.StartsWith("--client-path=", StringComparison.OrdinalIgnoreCase))
-                s.ClientExePath = a.Split('=', 2)[1].Trim('"');
-        }
-
-        // 上書きがあれば保存（有効性チェックは SettingsWindow に委譲）
-        try { s.Save(); } catch (Exception ex) { Services.LogService.Error("Boot", "起動時設定保存で例外", ex); }
-
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
-    }
-
+    // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            .WithInterFont()
             .LogToTrace();
 }

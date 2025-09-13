@@ -1,132 +1,144 @@
-// ViewModels/MainWindowViewModel.cs
-// 日本語概要: メイン画面のロジック。3サーバーの起動/再起動/終了、出力のバインディング、クライアント起動を実装します。
+// C#
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
-using AurigaFrontend.Services;
+using System;
+using System.Diagnostics;
+using System.Text;
+using System.Threading.Tasks;
+using AurigaPlus.Models;
+using AurigaPlus.Services;
+using Avalonia.Threading;
 
-namespace AurigaFrontend.ViewModels;
-
-public partial class MainWindowViewModel : ObservableObject
+namespace AurigaPlus.ViewModels
 {
-    private readonly Models.AppSettings _settings;
-    private ServerProcessManager? _manager;
-
-    [ObservableProperty] private bool loginRunning;
-    [ObservableProperty] private bool charRunning;
-    [ObservableProperty] private bool mapRunning;
-
-    public ObservableCollection<string> LoginLog { get; } = new();
-    public ObservableCollection<string> CharLog  { get; } = new();
-    public ObservableCollection<string> MapLog   { get; } = new();
-
-    [ObservableProperty] private string statusBarText = "準備完了";
-
-    public MainWindowViewModel(Models.AppSettings settings)
+    /// <summary>
+    /// メインウィンドウのViewModel。
+    /// </summary>
+    public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
-        _settings = settings;
-        if (!string.IsNullOrEmpty(_settings.AurigaPath))
-        {
-            _manager = new ServerProcessManager(_settings.AurigaPath);
-            _manager.OutputReceived += OnOutputReceived;
-        }
-        else
-        {
-            StatusBarText = "設定が未完了です。パスを設定してください。";
-        }
-    }
+        private readonly AppSettings _settings;
+        private readonly ServerManager _loginServer;
+        private readonly ServerManager _charServer;
+        private readonly ServerManager _mapServer;
 
-    private void EnsureManager()
-    {
-        if (_manager == null && !string.IsNullOrEmpty(_settings.AurigaPath))
-        {
-            _manager = new ServerProcessManager(_settings.AurigaPath);
-            _manager.OutputReceived += OnOutputReceived;
-        }
-    }
+        // 各サーバーのコンソール出力を保持します。
+        [ObservableProperty]
+        private string? _loginServerOutput;
+        [ObservableProperty]
+        private string? _charServerOutput;
+        [ObservableProperty]
+        private string? _mapServerOutput;
 
-    private void OnOutputReceived(object? sender, ProcessOutputEventArgs e)
-    {
-        // UI スレッドに切り替え
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        /// <summary>
+        /// 設定ウィンドウを開くようViewに要求するイベント。
+        /// </summary>
+        public event Action<SettingsViewModel>? OpenSettingsRequested;
+
+        // コマンドを定義します。
+        public IAsyncRelayCommand RestartLoginServerCommand { get; }
+        public IAsyncRelayCommand StopLoginServerCommand { get; }
+        public IAsyncRelayCommand RestartCharServerCommand { get; }
+        public IAsyncRelayCommand StopCharServerCommand { get; }
+        public IAsyncRelayCommand RestartMapServerCommand { get; }
+        public IAsyncRelayCommand StopMapServerCommand { get; }
+        public IRelayCommand StartClientCommand { get; }
+        public IRelayCommand OpenSettingsCommand { get; }
+
+        public MainWindowViewModel(AppSettings settings)
         {
-            var line = (e.IsError ? "[ERR] " : "") + e.Line;
-            switch (e.Kind)
+            _settings = settings;
+
+            // サーバーマネージャーを初期化
+            _loginServer = new ServerManager("ログインサーバー", "login-server", settings.AurigaPath ?? "");
+            _charServer = new ServerManager("キャラクターサーバー", "char-server", settings.AurigaPath ?? "");
+            _mapServer = new ServerManager("マップサーバー", "map-server", settings.AurigaPath ?? "");
+
+            // サーバー出力をUIに反映するためのイベントハンドラを登録
+            SetupServerOutputHandling();
+
+            // コマンドを初期化
+            RestartLoginServerCommand = new AsyncRelayCommand(_loginServer.RestartAsync);
+            StopLoginServerCommand = new AsyncRelayCommand(_loginServer.StopAsync);
+            RestartCharServerCommand = new AsyncRelayCommand(_charServer.RestartAsync);
+            StopCharServerCommand = new AsyncRelayCommand(_charServer.StopAsync);
+            RestartMapServerCommand = new AsyncRelayCommand(_mapServer.RestartAsync);
+            StopMapServerCommand = new AsyncRelayCommand(_mapServer.StopAsync);
+            StartClientCommand = new RelayCommand(StartClient);
+            OpenSettingsCommand = new RelayCommand(OpenSettings);
+
+            // アプリケーション起動時に全サーバーを起動
+            StartAllServers();
+        }
+
+        private void SetupServerOutputHandling()
+        {
+            var loginSb = new StringBuilder();
+            _loginServer.OutputDataReceived += (line) => AppendOutput(loginSb, (output) => LoginServerOutput = output, line);
+
+            var charSb = new StringBuilder();
+            _charServer.OutputDataReceived += (line) => AppendOutput(charSb, (output) => CharServerOutput = output, line);
+
+            var mapSb = new StringBuilder();
+            _mapServer.OutputDataReceived += (line) => AppendOutput(mapSb, (output) => MapServerOutput = output, line);
+        }
+
+        private void AppendOutput(StringBuilder sb, Action<string> setOutput, string line)
+        {
+            // UIスレッドでテキストを更新
+            Dispatcher.UIThread.Post(() =>
             {
-                case ServerKind.Login: LoginLog.Add(line); LoginRunning = _manager!.IsRunning(ServerKind.Login); break;
-                case ServerKind.Char:  CharLog.Add(line);  CharRunning  = _manager!.IsRunning(ServerKind.Char);  break;
-                case ServerKind.Map:   MapLog.Add(line);   MapRunning   = _manager!.IsRunning(ServerKind.Map);   break;
+                sb.AppendLine(line);
+                // パフォーマンスのため、一定量を超えたら古いログを削除
+                if (sb.Length > 20000)
+                {
+                    sb.Remove(0, sb.Length - 15000);
+                }
+                setOutput(sb.ToString());
+            });
+        }
+
+        private void StartAllServers()
+        {
+            if (string.IsNullOrWhiteSpace(_settings.AurigaPath))
+            {
+                LoginServerOutput = CharServerOutput = MapServerOutput = "Aurigaのパスが設定されていません。設定画面からパスを指定してください。";
+                return;
             }
-        });
-    }
+            _loginServer.StartAsync();
+            _charServer.StartAsync();
+            _mapServer.StartAsync();
+        }
 
-    [RelayCommand]
-    public void OpenSettings()
-    {
-        // メインウィンドウ側でハンドリング（View からダイアログ表示）
-    }
-
-    [RelayCommand]
-    public void StartLogin()
-    {
-        EnsureManager();
-        if (_manager == null) return; // 条件スキップ
-        if (_manager.Start(ServerKind.Login))
-            StatusBarText = "Login Server を起動しました";
-    }
-
-    [RelayCommand]
-    public void StopLogin()
-    {
-        if (_manager == null) return; // 条件スキップ
-        if (_manager.Stop(ServerKind.Login))
-            StatusBarText = "Login Server を停止しました";
-    }
-
-    [RelayCommand]
-    public void RestartLogin()
-    {
-        if (_manager == null) return; // 条件スキップ
-        if (_manager.Restart(ServerKind.Login))
-            StatusBarText = "Login Server を再起動しました";
-    }
-
-    [RelayCommand] public void StartChar()    { EnsureManager(); if (_manager?.Start(ServerKind.Char) == true)  StatusBarText = "Char Server を起動しました"; }
-    [RelayCommand] public void StopChar()     { if (_manager?.Stop(ServerKind.Char) == true)  StatusBarText = "Char Server を停止しました"; }
-    [RelayCommand] public void RestartChar()  { if (_manager?.Restart(ServerKind.Char) == true) StatusBarText = "Char Server を再起動しました"; }
-    [RelayCommand] public void StartMap()     { EnsureManager(); if (_manager?.Start(ServerKind.Map) == true)   StatusBarText = "Map Server を起動しました"; }
-    [RelayCommand] public void StopMap()      { if (_manager?.Stop(ServerKind.Map) == true)   StatusBarText = "Map Server を停止しました"; }
-    [RelayCommand] public void RestartMap()   { if (_manager?.Restart(ServerKind.Map) == true) StatusBarText = "Map Server を再起動しました"; }
-
-    [RelayCommand]
-    public void LaunchClient()
-    {
-        try
+        private void StartClient()
         {
-            var exe = _settings.ClientExePath;
-            if (string.IsNullOrWhiteSpace(exe) || !File.Exists(exe)) return; // 条件スキップ
-
-            var psi = new System.Diagnostics.ProcessStartInfo
+            if (string.IsNullOrWhiteSpace(_settings.ClientPath) || !System.IO.File.Exists(_settings.ClientPath))
             {
-                FileName = exe,
-                WorkingDirectory = Path.GetDirectoryName(exe) ?? Environment.CurrentDirectory,
-                UseShellExecute = true
-            };
-            System.Diagnostics.Process.Start(psi);
-            StatusBarText = "クライアントを起動しました（監視はしません）";
-        }
-        catch (Exception ex)
-        {
-            Services.LogService.Error("Client", "クライアント起動で例外が発生しました", ex);
-            StatusBarText = "クライアント起動に失敗しました。ログを確認してください。";
-        }
-    }
+                FileLogger.Log("クライアントのパスが正しく設定されていません。メイン画面にエラーを表示する機能は未実装です。");
+                return;
+            }
 
-    public void ApplyNewSettings(Models.AppSettings s)
-    {
-        // 設定変更適用（再生成）
-        _manager = new ServerProcessManager(s.AurigaPath);
-        _manager.OutputReceived += OnOutputReceived;
-        StatusBarText = "設定を適用しました";
+            try
+            {
+                Process.Start(new ProcessStartInfo(_settings.ClientPath) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                FileLogger.Log("クライアントの起動に失敗しました。", ex);
+            }
+        }
+
+        private void OpenSettings()
+        {
+            var settingsVm = new SettingsViewModel(_settings);
+            OpenSettingsRequested?.Invoke(settingsVm);
+        }
+
+        public void Dispose()
+        {
+            _loginServer.Dispose();
+            _charServer.Dispose();
+            _mapServer.Dispose();
+            GC.SuppressFinalize(this);
+        }
     }
 }

@@ -1,47 +1,73 @@
-// Models/AppSettings.cs
-// 日本語概要: ユーザー設定（Auriga のパス、クライアントパス）を JSON で保存・読み込みします。アプリの AppData 配下に格納します。
+// C#
 using System.Text.Json;
+using System.IO;
+using AurigaPlus.Services;
 
-namespace AurigaFrontend.Models;
-
-public class AppSettings
+namespace AurigaPlus.Models
 {
-    public string AurigaPath { get; set; } = string.Empty;
-    public string ClientExePath { get; set; } = string.Empty;
-
-    public static string GetAppDataDir()
+    /// <summary>
+    /// アプリケーションの設定を管理するクラス。
+    /// AurigaのパスとRagnarok Onlineクライアントのパスを保持します。
+    /// </summary>
+    public class AppSettings
     {
-        var dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            AurigaFrontend.Constants.AppName);
-        Directory.CreateDirectory(dir);
-        return dir;
-    }
+        /// <summary>
+        /// Aurigaサーバー群が格納されているディレクトリのパス。
+        /// </summary>
+        public string? AurigaPath { get; set; }
 
-    public static string GetSettingsPath()
-        => Path.Combine(GetAppDataDir(), AurigaFrontend.Constants.SettingsFileName);
+        /// <summary>
+        /// Ragnarok Onlineクライアント実行ファイルのパス。
+        /// </summary>
+        public string? ClientPath { get; set; }
 
-    public static AppSettings LoadOrDefault()
-    {
-        var path = GetSettingsPath();
-        if (!File.Exists(path)) return new AppSettings();
-        try
+        private static string GetSettingsFilePath()
         {
-            var json = File.ReadAllText(path);
-            var obj = JsonSerializer.Deserialize<AppSettings>(json);
-            return obj ?? new AppSettings();
+            // アプリケーションの実行ファイルがあるディレクトリに設定ファイルを保存します。
+            string exePath = System.AppContext.BaseDirectory;
+            return Path.Combine(exePath, "settings.json");
         }
-        catch
+
+        /// <summary>
+        /// 現在の設定をJSONファイルに保存します。
+        /// </summary>
+        public void Save()
         {
-            // 読み込み失敗時はデフォルトを返し、詳細はロガー側で記録
+            try
+            {
+                string filePath = GetSettingsFilePath();
+                string jsonString = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(filePath, jsonString);
+            }
+            catch (System.Exception ex)
+            {
+                FileLogger.Log("設定ファイルの保存に失敗しました。", ex);
+            }
+        }
+
+        /// <summary>
+        /// JSONファイルから設定を読み込みます。
+        /// ファイルが存在しない場合は、新しいインスタンスを返します。
+        /// </summary>
+        /// <returns>読み込まれた設定情報。ファイルが存在しない場合はデフォルト設定。</returns>
+        public static AppSettings Load()
+        {
+            try
+            {
+                string filePath = GetSettingsFilePath();
+                if (File.Exists(filePath))
+                {
+                    string jsonString = File.ReadAllText(filePath);
+                    var settings = JsonSerializer.Deserialize<AppSettings>(jsonString);
+                    return settings ?? new AppSettings();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                FileLogger.Log("設定ファイルの読み込みに失敗しました。", ex);
+            }
+            
             return new AppSettings();
         }
-    }
-
-    public void Save()
-    {
-        var path = GetSettingsPath();
-        var json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(path, json);
     }
 }

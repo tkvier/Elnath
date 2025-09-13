@@ -1,14 +1,15 @@
-<!-- App.axaml -->
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="AurigaFrontend.App">
-  <Application.Styles>
-    <FluentTheme />
-  </Application.Styles>
+             x:Class="AurigaPlus.App"
+             xmlns:local="using:AurigaPlus"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+  
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
 </Application>
-<Application.Resources>
-  <localConv:BoolToBrushConverter x:Key="BoolToBrushConverter" xmlns:localConv="clr-namespace:AurigaFrontend.Views.Converters" />
-  <!-- App.axaml の Application.Resources 内に追加 -->
-  <localConv:InverseBoolConverter x:Key="InverseBoolConverter" xmlns:localConv="clr-namespace:AurigaFrontend.Views.Converters" />
-  <localConv:RunningToTextConverter x:Key="RunningToTextConverter" xmlns:localConv="clr-namespace:AurigaFrontend.Views.Converters" />
-</Application.Resources>

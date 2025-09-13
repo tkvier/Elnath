@@ -1,46 +1,32 @@
-// Views/SettingsWindow.axaml.cs
-// 日本語概要: 参照ボタンでフォルダ/ファイルダイアログを開き、選択後にフォーカス検証コマンドを呼ぶ。
+// C#
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using AurigaFrontend.ViewModels;
+using AurigaPlus.ViewModels;
 
-namespace AurigaFrontend.Views;
-
-public partial class SettingsWindow : Window
+namespace AurigaPlus.Views
 {
-    public SettingsWindow()
+    public partial class SettingsWindow : Window
     {
-        InitializeComponent();
-    }
-
-    private async void BrowseAuriga_Click(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is not SettingsViewModel vm) return;
-        var dlg = new OpenFolderDialog { Title = "Auriga があるフォルダを選択" };
-        var dir = await dlg.ShowAsync(this);
-        if (!string.IsNullOrWhiteSpace(dir))
+        public SettingsWindow()
         {
-            vm.AurigaPath = dir;
-            vm.LostFocusValidateAurigaCommand.Execute(null);
+            InitializeComponent();
         }
-    }
 
-    private async void BrowseClient_Click(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is not SettingsViewModel vm) return;
-        var dlg = new OpenFileDialog
+        public SettingsWindow(SettingsViewModel viewModel)
         {
-            Title = "Ragnarok Online クライアント EXE を選択",
-            AllowMultiple = false
-        };
-        if (OperatingSystem.IsWindows())
-            dlg.Filters!.Add(new FileDialogFilter { Name = "実行ファイル", Extensions = { "exe" } });
+            InitializeComponent();
+            DataContext = viewModel;
 
-        var files = await dlg.ShowAsync(this);
-        if (files is { Length: > 0 })
+            // ViewModelで設定が保存されたら、ウィンドウを閉じる
+            viewModel.SettingsSaved += () => Close();
+        }
+
+        /// <summary>
+        /// キャンセルボタンがクリックされたときの処理。
+        /// </summary>
+        private void CancelButton_Click(object? sender, RoutedEventArgs e)
         {
-            vm.ClientExePath = files[0];
-            vm.LostFocusValidateClientCommand.Execute(null);
+            Close();
         }
     }
 }

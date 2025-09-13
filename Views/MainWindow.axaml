@@ -1,87 +1,75 @@
-<!-- Views/MainWindow.axaml -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="AurigaFrontend.Views.MainWindow"
-        Width="900" Height="600"
-        Title="Auriga Frontend">
-  <DockPanel>
-    <StatusBar DockPanel.Dock="Bottom">
-      <StatusBarItem>
-        <TextBlock Text="{Binding StatusBarText}" />
-      </StatusBarItem>
-      <StatusBarItem HorizontalAlignment="Right">
-        <Button Content="パス設定" Command="{Binding OpenSettingsCommand}" />
-      </StatusBarItem>
-      <StatusBarItem>
-        <Button Content="クライアント起動" Command="{Binding LaunchClientCommand}" />
-      </StatusBarItem>
-    </StatusBar>
+        xmlns:vm="using:AurigaPlus.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+        x:Class="AurigaPlus.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="AurigaPlus - Server Manager">
 
-    <Grid Margin="12" ColumnDefinitions="*,*,*" RowDefinitions="Auto,*,Auto">
-      <TextBlock Grid.ColumnSpan="3" Grid.Row="0" Text="Auriga サーバー管理" FontSize="18" Margin="0,0,0,8" />
+  <!-- デザイン時（プレビュー表示）用のデータコンテキスト -->
+  <Design.DataContext>
+      <vm:MainWindowViewModel>
+        <x:Arguments>
+          <x:Null/>
+        </x:Arguments>
+      </vm:MainWindowViewModel>
+  </Design.DataContext>
 
-      <!-- Login -->
-      <GroupBox Grid.Column="0" Grid.Row="1" Header="Login Server">
+  <DockPanel Margin="10">
+    <!-- 上部のボタンエリア -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+      <Button Content="Ragnarok Client 起動" Command="{Binding StartClientCommand}"/>
+      <Button Content="パス設定" Command="{Binding OpenSettingsCommand}"/>
+    </StackPanel>
+
+    <!-- 3つのサーバー管理区画 -->
+    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+      
+      <!-- Login Server -->
+      <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1">
         <DockPanel>
-          <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,6">
-            <Button Content="起動" Command="{Binding StartLoginCommand}" IsEnabled="{Binding LoginRunning, Converter={StaticResource InverseBoolConverter}}" />
-            <Button Content="再起動" Command="{Binding RestartLoginCommand}" />
-            <Button Content="終了" Command="{Binding StopLoginCommand}" IsEnabled="{Binding LoginRunning}" />
-            <TextBlock Text="{Binding LoginRunning, Converter={StaticResource RunningToTextConverter}}" Margin="12,0,0,0"/>
+          <TextBlock DockPanel.Dock="Top" Text="ログインサーバー" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" Margin="5"/>
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="5">
+            <Button Content="再起動" Command="{Binding RestartLoginServerCommand}"/>
+            <Button Content="終了" Command="{Binding StopLoginServerCommand}"/>
           </StackPanel>
           <ScrollViewer>
-            <ItemsControl Items="{Binding LoginLog}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-            </ItemsControl>
+            <TextBox Text="{Binding LoginServerOutput}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas,Menlo,Monospace"/>
           </ScrollViewer>
         </DockPanel>
-      </GroupBox>
+      </Border>
 
-      <!-- Char -->
-      <GroupBox Grid.Column="1" Grid.Row="1" Header="Char Server">
+      <!-- Char Server -->
+      <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1">
         <DockPanel>
-          <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,6">
-            <Button Content="起動" Command="{Binding StartCharCommand}" IsEnabled="{Binding CharRunning, Converter={StaticResource InverseBoolConverter}}" />
-            <Button Content="再起動" Command="{Binding RestartCharCommand}" />
-            <Button Content="終了" Command="{Binding StopCharCommand}" IsEnabled="{Binding CharRunning}" />
-            <TextBlock Text="{Binding CharRunning, Converter={StaticResource RunningToTextConverter}}" Margin="12,0,0,0"/>
+          <TextBlock DockPanel.Dock="Top" Text="キャラクターサーバー" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" Margin="5"/>
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="5">
+            <Button Content="再起動" Command="{Binding RestartCharServerCommand}"/>
+            <Button Content="終了" Command="{Binding StopCharServerCommand}"/>
           </StackPanel>
           <ScrollViewer>
-            <ItemsControl Items="{Binding CharLog}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-            </ItemsControl>
+            <TextBox Text="{Binding CharServerOutput}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas,Menlo,Monospace"/>
           </ScrollViewer>
         </DockPanel>
-      </GroupBox>
+      </Border>
 
-      <!-- Map -->
-      <GroupBox Grid.Column="2" Grid.Row="1" Header="Map Server">
+      <!-- Map Server -->
+      <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1">
         <DockPanel>
-          <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,6">
-            <Button Content="起動" Command="{Binding StartMapCommand}" IsEnabled="{Binding MapRunning, Converter={StaticResource InverseBoolConverter}}" />
-            <Button Content="再起動" Command="{Binding RestartMapCommand}" />
-            <Button Content="終了" Command="{Binding StopMapCommand}" IsEnabled="{Binding MapRunning}" />
-            <TextBlock Text="{Binding MapRunning, Converter={StaticResource RunningToTextConverter}}" Margin="12,0,0,0"/>
+          <TextBlock DockPanel.Dock="Top" Text="マップサーバー" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" Margin="5"/>
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="5">
+            <Button Content="再起動" Command="{Binding RestartMapServerCommand}"/>
+            <Button Content="終了" Command="{Binding StopMapServerCommand}"/>
           </StackPanel>
           <ScrollViewer>
-            <ItemsControl Items="{Binding MapLog}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-            </ItemsControl>
+            <TextBox Text="{Binding MapServerOutput}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas,Menlo,Monospace"/>
           </ScrollViewer>
         </DockPanel>
-      </GroupBox>
+      </Border>
+      
     </Grid>
   </DockPanel>
 </Window>
