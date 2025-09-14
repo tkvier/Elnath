@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace AurigaPlus;
+namespace Elnath;
 
 sealed class Program
 {

@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace AurigaPlus.Services
+namespace Elnath.Services
 {
     /// <summary>
     /// エラーログをファイルに記録する機能を提供します。

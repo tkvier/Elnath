@@ -1,15 +1,15 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:AurigaPlus.ViewModels"
+        xmlns:vm="using:Elnath.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
-        x:Class="AurigaPlus.Views.MainWindow"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+        x:Class="Elnath.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="AurigaPlus - Server Manager">
+        Icon="/Assets/logo.ico"
+        Title="Elnath - Auriga Server Manager"
+        Width="1000" Height="700" CanResize="False">
 
-  <!-- デザイン時（プレビュー表示）用のデータコンテキスト -->
   <Design.DataContext>
       <vm:MainWindowViewModel>
         <x:Arguments>
@@ -19,11 +19,26 @@
   </Design.DataContext>
 
   <DockPanel Margin="10">
-    <!-- 上部のボタンエリア -->
-    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
-      <Button Content="Ragnarok Client 起動" Command="{Binding StartClientCommand}"/>
-      <Button Content="パス設定" Command="{Binding OpenSettingsCommand}"/>
-    </StackPanel>
+    <!-- 上部のパス設定エリア -->
+    <Border DockPanel.Dock="Top" BorderBrush="Gray" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+      <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+        <!-- Server Path Row -->
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="サーバールート:" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding AurigaPath, Mode=TwoWay}" 
+                 Foreground="{Binding AurigaPathBrush}" IsReadOnly="{Binding IsAurigaPathReadOnly}"
+                 Watermark="Aurigaのルートパスを入力..."/>
+        <Button Grid.Row="0" Grid.Column="2" Content="サーバー起動" Command="{Binding StartAllServersCommand}" IsEnabled="{Binding IsServerStartEnabled}"/>
+        <Button Grid.Row="0" Grid.Column="3" Content="サーバー停止" Command="{Binding StopAllServersCommand}" IsEnabled="{Binding IsServerStopEnabled}"/>
+
+        <!-- Client Path Row -->
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="ROクライアント:" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ClientPath, Mode=TwoWay}" 
+                 Foreground="{Binding ClientPathBrush}"
+                 Watermark="Ragnarok.exeのフルパスを入力..."/>
+        <Button Grid.Row="1" Grid.Column="2" Content="クライアント起動" Command="{Binding StartClientCommand}" IsEnabled="{Binding IsClientStartEnabled}"/>
+        <Button Grid.Row="1" Grid.Column="3" Content="クライアント設定" Command="{Binding StartClientSetupCommand}" IsEnabled="{Binding IsClientSettingsEnabled}"/>
+      </Grid>
+    </Border>
 
     <!-- 3つのサーバー管理区画 -->
     <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
@@ -33,11 +48,11 @@
         <DockPanel>
           <TextBlock DockPanel.Dock="Top" Text="ログインサーバー" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" Margin="5"/>
           <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="5">
-            <Button Content="再起動" Command="{Binding RestartLoginServerCommand}"/>
-            <Button Content="終了" Command="{Binding StopLoginServerCommand}"/>
+            <Button Content="再起動" Command="{Binding RestartLoginServerCommand}" IsEnabled="{Binding IsPerServerControlEnabled}"/>
+            <Button Content="終了" Command="{Binding StopLoginServerCommand}" IsEnabled="{Binding IsPerServerControlEnabled}"/>
           </StackPanel>
           <ScrollViewer>
-            <TextBox Text="{Binding LoginServerOutput}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas,Menlo,Monospace"/>
+            <TextBox x:Name="LoginServerLogBox" Text="{Binding LoginServerOutput}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas,Menlo,Monospace" TextChanged="LogBox_TextChanged"/>
           </ScrollViewer>
         </DockPanel>
       </Border>
@@ -47,11 +62,11 @@
         <DockPanel>
           <TextBlock DockPanel.Dock="Top" Text="キャラクターサーバー" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" Margin="5"/>
           <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="5">
-            <Button Content="再起動" Command="{Binding RestartCharServerCommand}"/>
-            <Button Content="終了" Command="{Binding StopCharServerCommand}"/>
+            <Button Content="再起動" Command="{Binding RestartCharServerCommand}" IsEnabled="{Binding IsPerServerControlEnabled}"/>
+            <Button Content="終了" Command="{Binding StopCharServerCommand}" IsEnabled="{Binding IsPerServerControlEnabled}"/>
           </StackPanel>
           <ScrollViewer>
-            <TextBox Text="{Binding CharServerOutput}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas,Menlo,Monospace"/>
+            <TextBox x:Name="CharServerLogBox" Text="{Binding CharServerOutput}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas,Menlo,Monospace" TextChanged="LogBox_TextChanged"/>
           </ScrollViewer>
         </DockPanel>
       </Border>
@@ -61,11 +76,11 @@
         <DockPanel>
           <TextBlock DockPanel.Dock="Top" Text="マップサーバー" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" Margin="5"/>
           <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="5">
-            <Button Content="再起動" Command="{Binding RestartMapServerCommand}"/>
-            <Button Content="終了" Command="{Binding StopMapServerCommand}"/>
+            <Button Content="再起動" Command="{Binding RestartMapServerCommand}" IsEnabled="{Binding IsPerServerControlEnabled}"/>
+            <Button Content="終了" Command="{Binding StopMapServerCommand}" IsEnabled="{Binding IsPerServerControlEnabled}"/>
           </StackPanel>
           <ScrollViewer>
-            <TextBox Text="{Binding MapServerOutput}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas,Menlo,Monospace"/>
+            <TextBox x:Name="MapServerLogBox" Text="{Binding MapServerOutput}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas,Menlo,Monospace" TextChanged="LogBox_TextChanged"/>
           </ScrollViewer>
         </DockPanel>
       </Border>

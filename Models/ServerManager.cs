@@ -3,9 +3,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using AurigaPlus.Services;
+using Elnath.Services;
 
-namespace AurigaPlus.Models
+namespace Elnath.Models
 {
     /// <summary>
     /// サーバープロセスの状態を表す列挙型。
@@ -127,12 +127,17 @@ namespace AurigaPlus.Models
 
                 try
                 {
-                    // Graceful shutdownを試みる（もし標準入力が有効なら）
-                    // _process.StandardInput.WriteLine("exit"); 
-                    
-                    // 強制終了
-                    _process.Kill(); 
-                    _process.WaitForExit();
+                    if (!_process.HasExited)
+                    {
+                        _process.Kill();
+                        // 5秒待ってプロセスが終了したか確認
+                        if (!_process.WaitForExit(5000))
+                        {
+                            var message = $"[ERROR] プロセスの終了に失敗しました: {_process.ProcessName} (PID: {_process.Id})";
+                            OutputDataReceived?.Invoke(message);
+                            FileLogger.Log($"{DisplayName}の停止失敗: {message}");
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {

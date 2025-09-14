@@ -1,9 +1,9 @@
 // C#
 using System.Text.Json;
 using System.IO;
-using AurigaPlus.Services;
+using Elnath.Services;
 
-namespace AurigaPlus.Models
+namespace Elnath.Models
 {
     /// <summary>
     /// アプリケーションの設定を管理するクラス。

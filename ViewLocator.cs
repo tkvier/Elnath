@@ -1,9 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using AurigaPlus.ViewModels;
+using Elnath.ViewModels;
 
-namespace AurigaPlus;
+namespace Elnath;
 
 public class ViewLocator : IDataTemplate
 {

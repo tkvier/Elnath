@@ -1,2 +1,2 @@
-# AurigaPlus
+# Auriga Elnath
 Auriga用フロントエンド
