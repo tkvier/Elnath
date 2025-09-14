@@ -47,12 +47,12 @@ namespace Elnath.Models
         /// </summary>
         /// <param name="displayName">サーバーの表示名。</param>
         /// <param name="serverName">サーバーの内部名（実行ファイル名から拡張子を除いたもの）。</param>
-        /// <param name="aurigaPath">Aurigaのルートパス。</param>
-        public ServerManager(string displayName, string serverName, string aurigaPath)
+        /// <param name="AurigaPath">Aurigaのルートパス。</param>
+        public ServerManager(string displayName, string serverName, string AurigaPath)
         {
             DisplayName = displayName;
             _serverName = serverName;
-            _aurigaPath = aurigaPath;
+            _aurigaPath = AurigaPath;
             _executableName = $"{serverName}.exe";
         }
 

@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace AurigaElnath.ViewModels;
+namespace Elnath.ViewModels;
 
 public class ViewModelBase : ObservableObject
 {
