@@ -77,38 +77,42 @@ Ragexe.exeのファイル名は実行ファイルであればほかの名前で�
 
 ## 📄 ライセンス
 
-本アプリケーションは **CC0 1.0 Universal（パブリックドメイン）** ライセンスの下で提供されます  
-著作権を放棄しており、以下の条件のもとで自由にご利用いただけます
+本アプリケーションは **GNU General Public License v3.0（GPL-3.0）** の下で提供されます。  
+このライセンスは、ユーザーに自由な使用・改変・再配布の権利を認めつつ、ソフトウェアの自由を守ることを目的としています。
 
 ### 利用・改変・再配布について
 - 本アプリケーションは、商用・非商用を問わず自由に使用できます  
-- 自由に改造し、改造版を配布することができます  
-- 無改造での再配布も可能です。ただし、その場合も「あなたが配布したもの」とみなされます  
-- 配布物のライセンスを変更することも自由です。あなたが配布するものであるため、任意に設定してください
+- ソースコードを改変し、改変版を配布することができます  
+- 改変の有無にかかわらず、再配布する際には**GPL-3.0ライセンスの下で配布**する必要があります  
+- 再配布時には、**ソースコードを同時に提供するか、入手方法を明示する必要**があります
 
 ### 免責事項
-- 本アプリケーションの利用・配布に伴う一切の責任は、利用者および配布者が負うものとします  
-- あなたが第三者に渡した場合、それはあなたが提供したものであり、作者は一切関与しません  
+- 本アプリケーションは「現状のまま」提供され、**いかなる保証もありません**  
+- 利用者または配布者が本アプリケーションを使用したことによる損害について、作者は一切の責任を負いません
 
 ### 法的留意事項
-- ライセンスで許可される行為と、法的に許される行為は別問題です  
-- 例えば、作者を偽って再配布することはライセンス上は制限されませんが、詐欺行為として法的責任を問われる可能性があります
+- GPLライセンスは、著作権法に基づいて適用されます  
+- ライセンスに違反した場合、著作権侵害として法的責任を問われる可能性があります  
+- 作者を偽って配布することは、GPLの精神に反するだけでなく、詐欺行為として法的責任を問われる可能性があります
+
+---
 
 ## License
 
-This application is provided under the **CC0 1.0 Universal (Public Domain Dedication)**.  
-The copyright has been waived, and you are free to use it under the following conditions.
+This application is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.  
+This license grants users the freedom to use, modify, and redistribute the software, while ensuring that those freedoms are preserved.
 
 ### Use, Modification, and Redistribution
-- You may use this application freely for any purpose, including commercial and non-commercial use.  
-- You may modify it and distribute your modified versions.  
-- You may redistribute it without modification. However, in such cases, it will still be considered *your* distribution.  
-- You may change the license for your distribution. Since it is your distribution, you are free to choose the terms.
+- You may use this application freely for any purpose, including commercial and non-commercial use  
+- You may modify the source code and distribute your modified versions  
+- Whether modified or not, any redistribution must be under the **same GPL-3.0 license**  
+- You must also **provide the source code** or indicate how it can be obtained when redistributing
 
 ### Disclaimer
-- All responsibility for the use or distribution of this application lies with the user or distributor.  
-- If you provide this application to a third party, it is considered to have been provided by you, and the original author has no involvement whatsoever.
+- This application is provided **"as is"**, without any warranty  
+- The author shall not be held liable for any damages arising from the use or distribution of this application
 
 ### Legal Notice
-- What is permitted under this license and what is legally permissible are separate matters.  
-- For example, redistributing this application while falsely claiming to be the original author is not restricted by the license itself, but it may constitute fraud under applicable laws.
+- The GPL license operates under copyright law  
+- Violating the license terms may result in legal consequences for copyright infringement  
+- Misrepresenting the authorship of this application may constitute fraud under applicable laws
