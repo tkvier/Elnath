@@ -1,17 +1,27 @@
 # Elnath
-Auriga用フロントエンド
+**Auriga用フロントエンド**  
 このプログラムはRagnarok online エミュレーターサーバーのAuriga用フロントエンドアプリケーションです  
-このアプリを使用することでAurigaの複数のCUIウィンドウを開かずに管理することができます
+このアプリを使用することでAurigaの複数のCUIウィンドウを開かずに管理することができます  
+.net9.0 + Avaroniaを使用しているのでxxx-server.exeをLinux用に書き換えれば動くかもしれません  
+基本的に自分用に作ってますので、改造改良要望などはフォークしてから自分で行ってください
+
+このアプリケーションは Ragnarok Online エミュレーターサーバー「Auriga」の管理を効率化するためのフロントエンドです  
+複数のCUIベースの管理ウィンドウを統合し GUIで一括操作できるように設計されています  
+
+開発には .NET 9.0 と Avaronia Framework を使用  
+サーバー名をLinux向けに書き換えてビルドし直せば Linuxでの動作も可能かもしれません
+
+本ツールは個人用途を前提に作成しています  
+機能追加やカスタマイズを希望される場合は フォークしてご自身で改修をお願いします
 
 ---
 
 ## 開発環境
 
-Windows11Pro + Visual Studio Code  
-開発言語 .net9.0 + AvaroniaUI 11.3.3  
-このアプリの開発にGemini CLI、Copilotを使用しています  
-このアプリの画像はStableDiffusionXLのIllustrius系モデルARIA-i3497で生成されています  
-このアプリの画像はLamaCleanerによって加工されています  
+開発環境：Windows11Pro + Visual Studio Code  
+開発言語：.net9.0 + Avaronia 11.3.3  
+使用AI：Gemini CLI(Gemini2.5Pro)/Copilot/StableDiffusionXL/LamaCleaner  
+画像生成モデル：ARIA-i3497  
 
 ---
 
@@ -19,7 +29,6 @@ Windows11Pro + Visual Studio Code
 
 ### Windows 実行ファイル
 1. [リリースページ](/releases) から実行ファイルをダウンロードしてください  
-2. 本アプリは **.NET 9.0** でビルドされています  
    - 環境によっては .NET ランタイムのインストールが必要になる場合があります  
    - [.NET 公式サイト](https://dotnet.microsoft.com/ja-jp/download/dotnet/9.0) からダウンロードしてください
 
@@ -32,13 +41,37 @@ Windows11Pro + Visual Studio Code
 
 ## 🚀 使い方
 
+### 基本設定
+
 1. アプリを起動すると、以下のような画面が表示されます  
 
-   <img src="https://tkvier.github.io/resource/RandomLineExtractor/ss01.jpg" alt="アプリ画面">
+   <img src="https://tkvier.github.io/resource/Elnath/ss01.jpg" alt="アプリ画面">
 
-2. **取得したいファイル**と**出力ファイル** を設定します  
-3. **取得したい行数** を入力します。  
-4. 「実行」ボタンを押すと、ランダムに抽出された行が出力ファイルに保存されます
+2. **Auriga**サーバーのフォルダパスを設定します  
+パスを設定するとサーバー起動ボタンが有効になります
+   - **サーバー起動**ボタンを押すとログインサーバー、キャラクターサーバー、マップサーバーが起動します  
+マップサーバーの起動処理に時間がかかってフリーズみたいになりますが、処理が終われば落ち着きます  
+   - **サーバー停止**ボタンを押すと3つのサーバー全て終了します
+
+   <img src="https://tkvier.github.io/resource/Elnath/ss02.jpg" alt="Aurigaフォルダパス入力">
+
+3. **Ragexe.exe** へのファイルパスを設定します  
+Ragexe.exeのファイル名は実行ファイルであればほかの名前でも構いません  
+パスを設定するとラグナロクの**クライアント起動**ボタンと**クライアント設定**ボタンが有効になります  
+   - **クライアント起動**ボタンを押すと設定した実行ファイルを実行します
+   - **クライアント設定**ボタンを押すとRagnarokの設定アプリが起動します(setup.exe)  
+
+   <img src="https://tkvier.github.io/resource/Elnath/ss03.jpg" alt="Ragexe.exeパス入力">
+
+### サーバー使用方法
+
+1. サーバーを起動すると各サーバーのログが表示されます  
+
+   <img src="https://tkvier.github.io/resource/Elnath/ss04.jpg" alt="サーバー起動">
+
+2. 各サーバーの下部には**再起動**ボタンと**終了**ボタンがあります 
+   - **再起動**ボタンを押すとそのサーバーを再起動します  
+   - **終了**ボタンを押すとそのサーバーを停止します
 
 ---
 
