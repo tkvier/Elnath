@@ -10,6 +10,21 @@
 # Backup
 .[Bb]ackup
 
+## Media Files
+*.ico
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
+*.mp4
+*.avi
+*.webm
+*.mov
+*.mpg
+*.mpeg
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
