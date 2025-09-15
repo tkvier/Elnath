@@ -1,8 +1,8 @@
 # Elnath
 **Auriga用フロントエンド**  
 
-このアプリケーションは Ragnarok Online エミュレーターサーバー「Auriga」の管理を効率化するためのフロントエンドです  
-複数のCUIベースの管理ウィンドウを統合し GUIで一括操作できるように設計されています  
+このアプリケーションはRagnarok Online エミュレーターサーバー「[Auriga](https://github.com/auriga/auriga)」の運用を効率化するためのフロントエンドツールです  
+CUIベースの複数の管理ウィンドウを統合し GUIで一括操作できるように設計されています  
 
 開発には .NET 9.0 と Avaronia Framework を使用  
 サーバー名をLinux向けに書き換えてビルドし直せば Linuxでの動作も可能かもしれません
@@ -24,7 +24,7 @@
 ## 📥 インストール方法
 
 ### Windows 実行ファイル
-1. [リリースページ](/releases) から実行ファイルをダウンロードしてください  
+1. [リリースページ](https://github.com/tkvier/Elnath/releases) から実行ファイルをダウンロードしてください  
    - 環境によっては .NET ランタイムのインストールが必要になる場合があります  
    - [.NET 公式サイト](https://dotnet.microsoft.com/ja-jp/download/dotnet/9.0) からダウンロードしてください
 
