@@ -226,7 +226,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
 
     public void Dispose()
     {
-        Task.Run(StopAllServers).Wait();
+        // The closing event in MainWindow.axaml.cs now handles stopping servers.
+        // This method is kept to fulfill the IDisposable interface.
         GC.SuppressFinalize(this);
     }
 }
